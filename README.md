@@ -1,14 +1,23 @@
-# 🌸 Difflo — Diffusion Models for Flower Image Generation
+# 🌸 Difflo — Class-Conditional Diffusion for Flower Image Generation
 
-**Difflo** is a lightweight project exploring denoising diffusion models for generating realistic flower images from pure noise. The goal is to understand how structure, color, and fine texture emerge through iterative denoising, using a compact and interpretable setup.
+**Difflo** is a learning-focused implementation of a **class-conditional denoising diffusion model**, built from scratch to study how diffusion models behave under **low-compute constraints**.
+
+The project emphasizes architectural correctness, conditioning mechanisms, and failure-mode analysis rather than state-of-the-art image quality.
 
 ---
 
 ## 🧠 Overview
 
-Diffusion models learn to reverse a gradual noising process. Starting from Gaussian noise, the model iteratively reconstructs samples from the target image distribution.
+Diffusion models learn to generate data by reversing a gradual noising process. Starting from Gaussian noise, the model iteratively denoises samples to recover structure from the learned data distribution.
 
-In this project, a diffusion model is trained on a flower image dataset current dataset, learning to generate visually coherent flowers by progressively removing noise. The emphasis is on clarity, experimentation, and reproducibility rather than scale.
+In this project, a **UNet-based class-conditional diffusion model** is trained to generate **102 flower species**, with experiments around:
+
+* noise schedules
+* class conditioning
+* EMA stabilization
+* DDIM sampling speed–quality trade-offs
+
+The focus is on **understanding behavior and limitations**, not maximizing benchmark scores.
 
 ---
 
@@ -16,43 +25,75 @@ In this project, a diffusion model is trained on a flower image dataset current 
 
 ```
 Difflo/
-├── diffusion-model.ipynb              # Base diffusion training and sampling pipeline
-├── diffusion-model-conditional.ipynb  # Conditional diffusion variant (101 oxford flower dataset)
-├── diffusion-model-attn-unet-try1.ipynb # Attention-UNet experiments
-├── ddm_folders/
-│   └── checkpoint/
-│       └── checkpoint.weights.h5      # Saved model weights (of diffusion-model.iynb)
-├── output/                             # Generated image samples (of diffusion-model.ipynb)
+├── diffusion_model_conditional.ipynb   # Class-conditional DDPM + DDIM
+├── report.md                           # Detailed technical analysis
+├── figures/                            # Plots & generation samples
 └── README.md
 ```
 
 ---
 
-## 📊 Results 
+## 📊 Experimental Setup
 
-* **Dataset:** Flowers 
-* **Model:** Denoising Diffusion Model (DDM)
-* **Evaluation:** Frechet Inception Distance (FID)
-* **FID Score:** **6.55** 
+* **Dataset**: Oxford Flowers-102
+* **Resolution**: 64×64
+* **Classes**: 102
+* **Model**: UNet with self-attention + class embeddings
+* **Training**: Single Kaggle P100 GPU
+* **Sampling**: DDIM (20–200 steps)
+* **Evaluation**: Fréchet Inception Distance (FID)
 
-The model captures petal-level structure, color gradients, and overall flower composition effectively given its relatively small size and training budget.
+---
+
+## 📉 Results & Interpretation
+
+* **FID**: High (≈200 range under current settings)
+
+This is expected given:
+
+* limited training duration (≈150 epochs)
+* low image resolution
+* per-class data scarcity
+* constrained model capacity
+
+Rather than optimizing FID, the project analyzes **why quality degrades** under these constraints and how architectural choices affect outcomes.
+
+Generated samples show recognizable flower structure and class-specific traits but lack fine-grained detail.
+
+---
+
+## 🔬 What This Project Explores
+
+* Class conditioning via learned embeddings
+* Noise schedule comparisons (linear vs cosine variants)
+* EMA effects on sampling stability
+* DDIM vs DDPM efficiency
+* Failure modes in low-compute diffusion training
+
+A full technical breakdown is available in `report.md`.
 
 ---
 
 ## 🌼 Why “Difflo”?
 
-*Difflo* comes from **Diffusion + Flowers**. It reflects the slow, iterative, and surprisingly calm process by which diffusion models transform noise into structured visual patterns — much like a flower gradually blooming.
+**Difflo = Diffusion + Flowers** — a small, focused environment to observe how diffusion models gradually transform noise into structured images, step by step.
 
 ---
 
-## 🔬 Notes
+## 📌 Notes
 
-* This project is intended for learning and experimentation.
-* The notebooks are self-contained and designed to be easy to modify.
-* Further improvements may include better schedulers, classifier-free guidance, and larger backbones.
+* This is a **learning and analysis project**, not a production model.
+* Results reflect compute and data constraints, not architectural errors.
+* The implementation is intended to be readable, modifiable, and reproducible.
 
 ---
 
-## 📌 Acknowledgements
+## 📚 References
 
-Inspired by foundational work on denoising diffusion probabilistic models (DDPMs) and open-source diffusion implementations.
+Based on foundational work including:
+
+* Ho et al., *DDPM* (NeurIPS 2020)
+* Song et al., *DDIM* (ICLR 2021)
+* Nichol & Dhariwal, *Improved DDPM* (ICML 2021)
+
+---
